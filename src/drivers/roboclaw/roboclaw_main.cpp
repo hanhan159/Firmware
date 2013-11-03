@@ -120,7 +120,7 @@ int roboclaw_main(int argc, char *argv[])
 
 		if (argc == 2) {
 			printf("testing with default settings\n");
-		} else if (argc != 4) {
+		} else if (argc != 5) {
 			printf("usage: roboclaw test device address pulses_per_rev\n");
 			exit(-1);
 		} else {
