@@ -30,25 +30,35 @@ void BlockSegwayController::update() {
 		// update guidance
 	}
 
-	// compute speed command
-	float spdCmd = -th2v.update(_att.pitch) - q2v.update(_att.pitchspeed);
+	// compute duty cycle command
+	float dutyCycle = -th2v.update(_att.pitch) - 
+		q2v.update(_att.pitchspeed);
+
+	// motor commands to compute based on state
+	float motorLeft = 0;
+	float motorRight = 0;
 
 	// handle autopilot modes
 	if (_status.main_state == MAIN_STATE_AUTO ||
 	    _status.main_state == MAIN_STATE_SEATBELT ||
 	    _status.main_state == MAIN_STATE_EASY) {
-		_actuators.control[0] = spdCmd;
-		_actuators.control[1] = spdCmd;
+		// TODO should mix guidance here
+		motorLeft = dutyCycle;
+		motorRight = dutyCycle;
 
 	} else if (_status.main_state == MAIN_STATE_MANUAL) {
-		if (_status.navigation_state == NAVIGATION_STATE_DIRECT) {
-			_actuators.control[CH_LEFT] = _manual.throttle;
-			_actuators.control[CH_RIGHT] = _manual.pitch;
-
-		} else if (_status.navigation_state == NAVIGATION_STATE_STABILIZE) {
-			_actuators.control[0] = spdCmd;
-			_actuators.control[1] = spdCmd;
-		}
+		// TODO should mix manual
+		motorLeft = dutyCycle;
+		motorRight = dutyCycle;
+	}
+	
+	// send commands if armed
+	if (_status.arming_state == ARMING_STATE_ARMED) {
+		_actuators.control[0] = motorLeft;
+		_actuators.control[1] = motorRight;
+	} else {
+		_actuators.control[0] = 0;
+		_actuators.control[1] = 0;
 	}
 
 	// update all publications
