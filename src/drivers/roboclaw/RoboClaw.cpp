@@ -246,10 +246,15 @@ int RoboClaw::resetEncoders()
 int RoboClaw::update()
 {
 	// wait for an actuator publication,
-	// check for exit condition every second
+	// check for exit condition every second, otherwise
+	// set motors to zero
 	// note "::poll" is required to distinguish global
 	// poll from member function for driver
-	if (::poll(&_controlPoll, 1, 1000) < 0) return -1; // poll error
+	if (::poll(&_controlPoll, 1, 1000) < 0) {
+		setMotorDutyCycle(MOTOR_1,0);
+		setMotorDutyCycle(MOTOR_2,0);
+		return -1; // poll error
+	}
 
 	// if new data, send to motors
 	if (_actuators.updated()) {
@@ -300,6 +305,7 @@ int roboclawTest(const char *deviceName, uint8_t address,
 
 	// setup
 	RoboClaw roboclaw(deviceName, address, pulsesPerRev);
+	roboclaw.resetEncoders();
 	roboclaw.setMotorDutyCycle(RoboClaw::MOTOR_1, 0.3);
 	roboclaw.setMotorDutyCycle(RoboClaw::MOTOR_2, 0.3);
 	char buf[200];
